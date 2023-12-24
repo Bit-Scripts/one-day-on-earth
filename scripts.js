@@ -1953,51 +1953,46 @@ const getSeason = (currentDate, latitude) => {
 }
 
 window.addEventListener('DOMContentLoaded', async (event) => {
+    let latitude, longitude;
+
+    const handlePositionData = async (lat, long) => {
+        // Récupérer les données météorologiques
+        const weatherData = await fetch(
+            `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${long}&appid=01887dff1f41659d9505ec7a41906ace&units=metric&lang=fr`
+        ).then(r => r.json());
+
+        // Mise à jour du cycle jour/nuit, de la saison et de la météo
+        const currentDate = new Date();
+        const season = getSeason(currentDate, lat).toLowerCase();
+        updateBackgroundImage(season);
+        const background = document.querySelector('.body-background');
+        background.classList.remove('spring-filter', 'summer-filter', 'autumn-filter', 'winter-filter');
+        background.classList.add(`${season}-filter`);
+        updateMaskColor(season);
+        const myweather = weatherData.weather[0].icon.toLowerCase().match(/\d+/g);
+        const myweathertxt = myweather ? myweather.join("") : "";
+        changeWeather(myweathertxt);
+
+        const sunRise = new Date(weatherData.sys.sunrise * 1000);
+        const sunSet = new Date(weatherData.sys.sunset * 1000);
+        transitionDayNightCycle(currentDate, sunRise, sunSet);
+    };
+
     if ('geolocation' in navigator) {
         navigator.geolocation.getCurrentPosition(async position => {
-            const { latitude, longitude } = position.coords;
-            // console.log ('position:',position)
-            // Récupérer les données météorologiques
-            const weatherData = await fetch(
-                `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=01887dff1f41659d9505ec7a41906ace&units=metric&lang=fr`
-            ).then(r => r.json());
-            
-            //console.log('weatherData:', weatherData);
-
-            // Mise à jour du cycle jour/nuit, de la saison et de la météo
-            const currentDate = new Date();
-            //currentDate.setHours(21, 0, 0); // Heures, minutes, secondes
-            const season = getSeason(currentDate, latitude).toLowerCase();
-            // Vous pouvez modifier cette logique pour utiliser les données météo
-            //console.log('season:',season);
-            updateBackgroundImage(season);
-            const background = document.querySelector('.body-background');
-            // Enlever les classes de saison précédentes si elles existent
-            background.classList.remove('spring-filter', 'summer-filter', 'autumn-filter', 'winter-filter');
-            // Ajouter la classe de saison actuelle
-            background.classList.add(`${season}-filter`);
-            updateMaskColor(season);
-            myweather = weatherData.weather[0].icon.toLowerCase().match(/\d+/g);
-            myweathertxt = myweather ? myweather.join("") : "";
-            //console.log('myweathertxt:',myweathertxt)
-            changeWeather(myweathertxt);
-
-            // Gestion du cycle jour/nuit en fonction du lever et du coucher du soleil
-            const sunRise = new Date(weatherData.sys.sunrise * 1000);
-            const sunSet = new Date(weatherData.sys.sunset * 1000);
-
-            // Pour les tests, définissez des heures de lever et de coucher du soleil factices
-            // const sunRise = new Date(currentDate.getTime());
-            // sunRise.setHours(6, 0, 0); // Lever du soleil à 6h00
-
-            // const sunSet = new Date(currentDate.getTime());
-            // sunSet.setHours(17, 0, 0); // Coucher du soleil à 16h00
-
-            transitionDayNightCycle(currentDate, sunRise, sunSet);
-        }, error => {
+            latitude = position.coords.latitude;
+            longitude = position.coords.longitude;
+            handlePositionData(latitude, longitude);
+        }, async error => {
             console.error('Erreur lors de la récupération de la localisation:', error);
+            const response = await fetch('https://api.ipify.org?format=json');
+            const data = await response.json();
+            const ipAddress = data.ip;
+            const apiKey = '692d720b1630688daf92fd739de5817f';
+            const ipData = await fetch(`http://api.ipstack.com/${ipAddress}?access_key=${apiKey}`).then(r => r.json());
+            latitude = ipData.latitude;
+            longitude = ipData.longitude;
+            handlePositionData(latitude, longitude);
         });
-    } else {
-        console.log('La géolocalisation n\'est pas prise en charge par ce navigateur.');
     }
 });
