@@ -1975,6 +1975,31 @@ function getCookie(name) {
     return null;
 }
 
+// Fonction pour mettre à jour la météo et le cycle jour/nuit
+async function updateWeatherAndDayCycle(latitude, longitude) {
+    try {
+        const weatherData = await fetch(
+            `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=01887dff1f41659d9505ec7a41906ace&units=metric&lang=fr`
+        ).then(r => r.json());
+
+        const currentDate = new Date();
+        const season = getSeason(currentDate, latitude).toLowerCase();
+        updateBackgroundImage(season);
+        const background = document.querySelector('.body-background');
+        background.classList.remove('spring-filter', 'summer-filter', 'autumn-filter', 'winter-filter');
+        background.classList.add(`${season}-filter`);
+        updateMaskColor(season);
+        const myweather = weatherData.weather[0].icon.toLowerCase().match(/\d+/g);
+        const myweathertxt = myweather ? myweather.join("") : "";
+        changeWeather(myweathertxt);
+        const sunRise = new Date(weatherData.sys.sunrise * 1000);
+        const sunSet = new Date(weatherData.sys.sunset * 1000);
+        transitionDayNightCycle(currentDate, sunRise, sunSet);
+    } catch (error) {
+        console.error('Erreur lors de la récupération des données météorologiques:', error);
+    }
+}
+
 window.addEventListener('DOMContentLoaded', async (event) => {
     let latitude, longitude;
     // Pour récupérer les données de localisation
@@ -2014,27 +2039,13 @@ window.addEventListener('DOMContentLoaded', async (event) => {
     }
 
     if (latitude && longitude) {
-        try {
-            const weatherData = await fetch(
-                `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=01887dff1f41659d9505ec7a41906ace&units=metric&lang=fr`
-            ).then(r => r.json());
+        // Mise à jour initiale des données météorologiques et du cycle jour/nuit
+        updateWeatherAndDayCycle(latitude, longitude);
 
-            const currentDate = new Date();
-            const season = getSeason(currentDate, latitude).toLowerCase();
-            updateBackgroundImage(season);
-            const background = document.querySelector('.body-background');
-            background.classList.remove('spring-filter', 'summer-filter', 'autumn-filter', 'winter-filter');
-            background.classList.add(`${season}-filter`);
-            updateMaskColor(season);
-            const myweather = weatherData.weather[0].icon.toLowerCase().match(/\d+/g);
-            const myweathertxt = myweather ? myweather.join("") : "";
-            changeWeather(myweathertxt);
-            const sunRise = new Date(weatherData.sys.sunrise * 1000);
-            const sunSet = new Date(weatherData.sys.sunset * 1000);
-            transitionDayNightCycle(currentDate, sunRise, sunSet);
-        } catch (error) {
-            console.error('Erreur lors de la récupération des données météorologiques:', error);
-        }
+        // Mise à jour toutes les heures
+        setInterval(() => {
+            updateWeatherAndDayCycle(latitude, longitude);
+        }, 3600000); // 3600000 millisecondes = 1 heure
     } else {
         console.error('Impossible de déterminer la position.');
     }
