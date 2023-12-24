@@ -1952,47 +1952,90 @@ const getSeason = (currentDate, latitude) => {
     return currentSeason;
 }
 
+// Fonction pour créer un cookie
+function setCookie(name, value, days) {
+    var expires = "";
+    if (days) {
+        var date = new Date();
+        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+        expires = "; expires=" + date.toUTCString();
+    }
+    document.cookie = name + "=" + (value || "")  + expires + "; path=/";
+}
+
+// Fonction pour lire un cookie
+function getCookie(name) {
+    var nameEQ = name + "=";
+    var ca = document.cookie.split(';');
+    for(var i=0;i < ca.length;i++) {
+        var c = ca[i];
+        while (c.charAt(0)==' ') c = c.substring(1,c.length);
+        if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+    }
+    return null;
+}
+
 window.addEventListener('DOMContentLoaded', async (event) => {
     let latitude, longitude;
+    // Pour récupérer les données de localisation
+    var userLocation = getCookie('userLocation');
+    if (userLocation) {
+        var locationData = JSON.parse(userLocation);
+        //console.log(locationData.latitude, locationData.longitude);
+        latitude = locationData.latitude;
+        longitude = locationData.longitude;
+    } else {
+        if ('geolocation' in navigator) {
+            try {
+                const position = await new Promise((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(resolve, reject);
+                });
+                latitude = position.coords.latitude;
+                longitude = position.coords.longitude;
+                setCookie('userLocation', JSON.stringify({latitude: latitude, longitude: longitude}), 7); // Stocker pendant 7 jours
+            } catch (error) {
+                console.error('Erreur lors de la récupération de la localisation:', error);
+    
+                try {
+                    const ipData = await fetch('https://api.ipify.org?format=json').then(response => response.json());
+                    // console.log("Adresse IP récupérée :", ipData.ip);
+                    const apiKey = '62e90050a793e5';
+                    const userData = await fetch(`https://ipinfo.io/${ipData.ip}?token=${apiKey}`).then(response => response.json());
+    
+                    // console.log("Données de localisation récupérées :", userData);
+                    [latitude, longitude] = userData.loc.split(',');
+                    setCookie('userLocation', JSON.stringify({latitude: latitude, longitude: longitude}), 7); // Stocker pendant 7 jours
+    
+                } catch (error) {
+                    console.error('Erreur lors de la récupération de l\'adresse IP ou des données de localisation:', error);
+                }
+            }
+        }
+    }
 
-    const handlePositionData = async (lat, long) => {
-        // Récupérer les données météorologiques
-        const weatherData = await fetch(
-            `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${long}&appid=01887dff1f41659d9505ec7a41906ace&units=metric&lang=fr`
-        ).then(r => r.json());
+    if (latitude && longitude) {
+        try {
+            const weatherData = await fetch(
+                `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=01887dff1f41659d9505ec7a41906ace&units=metric&lang=fr`
+            ).then(r => r.json());
 
-        // Mise à jour du cycle jour/nuit, de la saison et de la météo
-        const currentDate = new Date();
-        const season = getSeason(currentDate, lat).toLowerCase();
-        updateBackgroundImage(season);
-        const background = document.querySelector('.body-background');
-        background.classList.remove('spring-filter', 'summer-filter', 'autumn-filter', 'winter-filter');
-        background.classList.add(`${season}-filter`);
-        updateMaskColor(season);
-        const myweather = weatherData.weather[0].icon.toLowerCase().match(/\d+/g);
-        const myweathertxt = myweather ? myweather.join("") : "";
-        changeWeather(myweathertxt);
-
-        const sunRise = new Date(weatherData.sys.sunrise * 1000);
-        const sunSet = new Date(weatherData.sys.sunset * 1000);
-        transitionDayNightCycle(currentDate, sunRise, sunSet);
-    };
-
-    if ('geolocation' in navigator) {
-        navigator.geolocation.getCurrentPosition(async position => {
-            latitude = position.coords.latitude;
-            longitude = position.coords.longitude;
-            handlePositionData(latitude, longitude);
-        }, async error => {
-            console.error('Erreur lors de la récupération de la localisation:', error);
-            const response = await fetch('https://api.ipify.org?format=json');
-            const data = await response.json();
-            const ipAddress = data.ip;
-            const apiKey = '692d720b1630688daf92fd739de5817f';
-            const ipData = await fetch(`http://api.ipstack.com/${ipAddress}?access_key=${apiKey}`).then(r => r.json());
-            latitude = ipData.latitude;
-            longitude = ipData.longitude;
-            handlePositionData(latitude, longitude);
-        });
+            const currentDate = new Date();
+            const season = getSeason(currentDate, latitude).toLowerCase();
+            updateBackgroundImage(season);
+            const background = document.querySelector('.body-background');
+            background.classList.remove('spring-filter', 'summer-filter', 'autumn-filter', 'winter-filter');
+            background.classList.add(`${season}-filter`);
+            updateMaskColor(season);
+            const myweather = weatherData.weather[0].icon.toLowerCase().match(/\d+/g);
+            const myweathertxt = myweather ? myweather.join("") : "";
+            changeWeather(myweathertxt);
+            const sunRise = new Date(weatherData.sys.sunrise * 1000);
+            const sunSet = new Date(weatherData.sys.sunset * 1000);
+            transitionDayNightCycle(currentDate, sunRise, sunSet);
+        } catch (error) {
+            console.error('Erreur lors de la récupération des données météorologiques:', error);
+        }
+    } else {
+        console.error('Impossible de déterminer la position.');
     }
 });
