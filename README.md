@@ -1,5 +1,7 @@
 # one-day-on-earth
-
+  
+[English version of the README](README-en.md)
+  
 ## À propos du projet  
   
 "One Day on Earth" est une expérience web interactive qui offre une représentation visuelle dynamique de la météo et du cycle jour/nuit. Basée sur la localisation de l'utilisateur, cette application web affiche des images de fond correspondant à la saison actuelle, ainsi que des effets visuels adaptés aux conditions météorologiques et au moment de la journée.
@@ -22,7 +24,8 @@ Ce projet est construit avec les technologies suivantes :
   
 ## Utilisation
   
-Pour vivre l'expérience "One Day on Earth", visitez [https://bit-scripts.github.io/one-day-on-earth/](https://bit-scripts.github.io/one-day-on-earth/). Assurez-vous de permettre l'accès à votre localisation pour une expérience optimale.
+Pour vivre l'expérience "One Day on Earth", visitez [https://bit-scripts.github.io/one-day-on-earth/](https://bit-scripts.github.io/one-day-on-earth/).  
+Assurez-vous de permettre l'accès à votre localisation pour une expérience optimale.
   
 ## Contribution
   
@@ -30,8 +33,8 @@ Les contributions à "One Day on Earth" sont les bienvenues. Si vous souhaitez c
 
 1. Forkez le dépôt.
 2. Créez une branche pour votre fonctionnalité (`git checkout -b feature/AmazingFeature`).
-3. Committez vos changements (git commit -m 'Add some AmazingFeature').
-4. Poussez vers la branche (git push origin feature/AmazingFeature).
+3. Committez vos changements (`git commit -m 'Add some AmazingFeature`).
+4. Poussez vers la branche (`git push origin feature/AmazingFeature`).
 5. Ouvrez une Pull Request.
   
 ## Licence
