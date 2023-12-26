@@ -39,7 +39,7 @@ Les contributions à "One Day on Earth" sont les bienvenues. Si vous souhaitez c
   
 ## Licence
   
-Distribué sous la licence GPLv3. Voir LICENSE pour plus d'informations.
+Distribué sous la licence GPLv3. Voir [LICENSE](https://github.com/Bit-Scripts/one-day-on-earth/blob/main/LICENSE) pour plus d'informations.
   
 ## Contact
   
