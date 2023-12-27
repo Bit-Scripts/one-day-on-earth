@@ -1874,42 +1874,41 @@ const changeWeather = (type) => {
             stopFlashEffect();
             break;
         case '02':
-            createCloud(10);
+            createCloud(20);
             stopFlashEffect();
             break;
         case '03':
-            createCloud(20);
+            createCloud(40);
             stopFlashEffect();
             break;
         case '04':
             createCloud(60);
-            particlesJS('particles-js', rainConfig);
             stopFlashEffect();
             break;
         case '09':
-            createCloud(30);
+            createCloud(60);
             particlesJS('particles-js', heavyRainConfig);
             stopFlashEffect();
             break;
         case '10':
-            createCloud(20);
+            createCloud(40);
             particlesJS('particles-js', rainConfig);
             stopFlashEffect();
             break;
         case '11':
-            createCloud(30);
+            createCloud(60);
             particlesJS('particles-js', heavyRainConfig);
             startFlashEffect();
             break;
         case '13':
-            createCloud(30);
+            createCloud(60);
             particlesJS('particles-js', snowConfig);
             stopFlashEffect();
             break;
         case '50':
             animateOverlayOpacity('.blur-effect', '0', '0.4', 3000);
-            animateOverlayOpacity('.mist-overlay', '0', '0.6', 3000);
-            createCloud(30);
+            animateOverlayOpacity('.mist-overlay', '0', '0.7', 3000);
+            createCloud(60);
             break;
         default:
             console.log('Type de temps inconnu:', type);
@@ -1991,6 +1990,7 @@ async function updateWeatherAndDayCycle(latitude, longitude) {
         updateMaskColor(season);
         const myweather = weatherData.weather[0].icon.toLowerCase().match(/\d+/g);
         const myweathertxt = myweather ? myweather.join("") : "";
+        console.log('myweathertxt:',myweathertxt)
         changeWeather(myweathertxt);
         const sunRise = new Date(weatherData.sys.sunrise * 1000);
         const sunSet = new Date(weatherData.sys.sunset * 1000);
